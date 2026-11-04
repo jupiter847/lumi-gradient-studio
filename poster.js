@@ -225,7 +225,7 @@ export async function renderPoster(rawConfig, rawPoster, width = 1600, height = 
   const placement = sculpturePlacement(poster, width, height);
   if (placement) {
     const { x: objectX, y: objectY, size: objectSize } = placement;
-    const { renderSculpture } = await import('./sculpture.js');
+    const { renderSculpture } = await import('./sculpture.js?v=3');
     const sculpture = await renderSculpture({ material: poster.material, size: Math.min(1024, Math.max(256, Math.ceil(objectSize))), rotationX: poster.rotationX, rotationY: poster.rotationY });
     context.save();
     context.shadowColor = lightText ? 'rgba(4,9,35,.2)' : 'rgba(18,65,91,.13)';
