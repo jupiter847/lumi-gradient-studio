@@ -10,6 +10,10 @@ export const DEFAULT_POSTER = Object.freeze({
   size: 100,
   material: 'glass',
   layout: 'poster',
+  rotationX: 0,
+  rotationY: 0,
+  objectX: 0,
+  objectY: 0,
 });
 
 const choices = {
@@ -27,6 +31,11 @@ function cleanText(value, fallback, limit) {
   return Array.from(clean).slice(0, limit).join('');
 }
 
+function boundedNumber(value, fallback, minimum, maximum) {
+  const numeric = typeof value === 'number' || (typeof value === 'string' && value.trim() !== '') ? Number(value) : NaN;
+  return Number.isFinite(numeric) ? Math.min(maximum, Math.max(minimum, numeric)) : fallback;
+}
+
 /** Restore a composition from browser-local data without accepting arbitrary styles. */
 export function sanitizePoster(raw = {}) {
   const value = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
@@ -38,7 +47,40 @@ export function sanitizePoster(raw = {}) {
   for (const [key, allowed] of Object.entries(choices)) result[key] = allowed.includes(value[key]) ? value[key] : DEFAULT_POSTER[key];
   const numericSize = typeof value.size === 'number' || (typeof value.size === 'string' && value.size.trim() !== '') ? Number(value.size) : NaN;
   result.size = Number.isFinite(numericSize) ? Math.min(140, Math.max(70, numericSize)) : DEFAULT_POSTER.size;
+  for (const key of ['rotationX', 'rotationY']) result[key] = boundedNumber(value[key], DEFAULT_POSTER[key], -Math.PI, Math.PI);
+  for (const key of ['objectX', 'objectY']) result[key] = boundedNumber(value[key], DEFAULT_POSTER[key], -.24, .24);
   return result;
+}
+
+/** The square sculpture layer in artwork pixels, shared by drawing and hit testing.
+ * Position offsets are fractions of the artwork dimensions. A 3% safe margin
+ * keeps the whole layer inside the artwork, including after a canvas-size change.
+ */
+export function sculpturePlacement(rawPoster, width, height) {
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    throw new RangeError('Artwork dimensions must be positive finite numbers.');
+  }
+  const poster = sanitizePoster(rawPoster);
+  if (poster.material === 'none' || poster.layout === 'blank') return null;
+  const portrait = width / height < .8;
+  const quote = poster.layout === 'quote';
+  const size = quote
+    ? Math.min(width * .52, height * .44)
+    : Math.min(width * (portrait ? .94 : .76), height * (portrait ? .5 : .68));
+  const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+  const minimumX = size / 2 + width * .03;
+  const maximumX = width * .97 - size / 2;
+  const minimumY = size / 2 + height * .03;
+  const maximumY = height * .97 - size / 2;
+  // Offsets start at the visible home position, which may already be bounded.
+  // This keeps the first drag responsive when a layout sits against a margin.
+  const baseX = clamp(quote && poster.align !== 'center' ? width * .72 : width * .5, minimumX, maximumX);
+  const baseY = clamp(height * (quote ? (portrait ? .28 : .29) : (portrait ? .38 : .395)), minimumY, maximumY);
+  return {
+    x: clamp(baseX + poster.objectX * width, minimumX, maximumX),
+    y: clamp(baseY + poster.objectY * height, minimumY, maximumY),
+    size,
+  };
 }
 
 const segmenter = typeof Intl.Segmenter === 'function' ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null;
@@ -180,19 +222,11 @@ export async function renderPoster(rawConfig, rawPoster, width = 1600, height = 
   context.restore();
 
   const quote = poster.layout === 'quote';
-  let objectSize, objectX, objectY;
-  if (quote) {
-    objectSize = Math.min(width*.52,height*.44);
-    objectX = poster.align === 'center' ? width*.5 : width*.72;
-    objectY = height*(portrait ? .28 : .29);
-  } else {
-    objectSize = Math.min(width*(portrait ? .94 : .76), height*(portrait ? .5 : .68));
-    objectX = width*.5;
-    objectY = height*(portrait ? .38 : .395);
-  }
-  if (poster.material !== 'none') {
+  const placement = sculpturePlacement(poster, width, height);
+  if (placement) {
+    const { x: objectX, y: objectY, size: objectSize } = placement;
     const { renderSculpture } = await import('./sculpture.js');
-    const sculpture = await renderSculpture({ material: poster.material, size: Math.min(1024, Math.max(256, Math.ceil(objectSize))) });
+    const sculpture = await renderSculpture({ material: poster.material, size: Math.min(1024, Math.max(256, Math.ceil(objectSize))), rotationX: poster.rotationX, rotationY: poster.rotationY });
     context.save();
     context.shadowColor = lightText ? 'rgba(4,9,35,.2)' : 'rgba(18,65,91,.13)';
     context.shadowBlur = shorter*.035;
