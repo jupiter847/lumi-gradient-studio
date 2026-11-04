@@ -1,5 +1,5 @@
 import { PRESETS, normalizeHex, sanitizeConfig, gradientCSS } from './gradient.js';
-import { sanitizePoster, renderPoster } from './poster.js';
+import { sanitizePoster, renderPoster, sculpturePlacement } from './poster.js';
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -23,6 +23,7 @@ let saved = storage.get('lumi-collection-v1',[]);
 saved = Array.isArray(saved) ? saved.filter(item => item && typeof item.name === 'string' && typeof item.id === 'string' && item.config).slice(0,24).map(item => ({id:item.id.slice(0,70),name:item.name.slice(0,40),config:sanitizeConfig(item.config),poster:sanitizePoster(item.poster || {layout:'blank'}),size:SIZES.includes(item.size)?item.size:SIZES[0]})) : [];
 let renderTimer, renderVersion = 0, draftTimer;
 let toastTimer;
+let objectMode = 'rotate', objectDrag = null, dragFrame = 0, dragRenderRunning = false, dragDirty = false;
 const hexOrigins = new WeakMap();
 
 function toast(message) {
@@ -65,16 +66,17 @@ function queueArtwork() {
   renderTimer=setTimeout(()=>refreshArtwork(),100);
   clearTimeout(draftTimer); draftTimer=setTimeout(()=>storage.set('lumi-draft-v2',snapshot()),250);
 }
-async function refreshArtwork() {
+async function refreshArtwork(interactive = false) {
   clearTimeout(renderTimer);
   const version=++renderVersion;
   const [width,height]=artworkSize.split('x').map(Number);
   try {
-    const artwork=await renderPoster(clone(config),clone(poster),width,height);
+    const scale=interactive ? Math.min(1,540/Math.max(width,height)) : 1;
+    const artwork=await renderPoster(clone(config),clone(poster),Math.max(1,Math.round(width*scale)),Math.max(1,Math.round(height*scale)));
     if(version!==renderVersion)return null;
-    const canvas=$('#posterCanvas');canvas.width=width;canvas.height=height;
+    const canvas=$('#posterCanvas');canvas.width=artwork.width;canvas.height=artwork.height;
     canvas.getContext('2d').drawImage(artwork,0,0);
-    canvas.setAttribute('aria-label',poster.layout==='blank' ? 'Gradient background preview' : `${poster.layout==='quote'?'Quote':'Poster'}: ${poster.title}. ${poster.subtitle}. ${poster.material==='none'?'No sculpture':poster.material+' sculpture'}.`);
+    canvas.setAttribute('aria-label',poster.layout==='blank' ? 'Gradient background preview' : `${poster.layout==='quote'?'Quote':'Poster'}: ${poster.title}. ${poster.subtitle}. ${poster.material==='none'?'No sculpture':poster.material+' sculpture, tilt '+Math.round(poster.rotationX*180/Math.PI)+' degrees, turn '+Math.round(poster.rotationY*180/Math.PI)+' degrees'}.`);
     $('#previewStatus').textContent='Artwork preview updated.';
     return artwork;
   } catch(error) {$('#previewStatus').textContent='The preview could not be rendered. Try another material or reload.';console.error(error);return null;}
@@ -100,7 +102,7 @@ function updatePreview() {
   for (const button of document.querySelectorAll('[data-preset]')) button.setAttribute('aria-pressed',String(button.dataset.preset===selectedId));
   $('#compositionNote').textContent=poster.layout==='blank'?'Background mode exports colour only. Choose Poster or Quote to add your words.':'Your words and sculpture are included in the download.';
   $('#savedCount').textContent = saved.length;
-  queueArtwork();updateMotion();updateHistoryButtons();
+  updateObjectControls();queueArtwork();updateMotion();updateHistoryButtons();
 }
 function render() {renderColours();renderContent();$('#angleRange').value=config.angle;$('#noiseRange').value=Math.round(config.noise*100);updatePreview();}
 function updateMotion() {
@@ -141,6 +143,7 @@ document.addEventListener('click',event=>{
   if(button.dataset.mode){poster.layout={glass:'poster',type:'quote',canvas:'blank'}[button.dataset.mode];pushHistory();updatePreview();}
   if(button.dataset.editor){const content=button.dataset.editor==='content';$('#contentControls').hidden=!content;$('#backgroundControls').hidden=content;for(const tab of document.querySelectorAll('[data-editor]')){const active=tab===button;tab.classList.toggle('selected',active);tab.setAttribute('aria-pressed',String(active));}}
   if(button.dataset.material){poster.material=button.dataset.material;if(poster.layout==='blank')poster.layout='poster';customEdit();pushHistory();updatePreview();}
+  if(button.dataset.objectMode){objectMode=button.dataset.objectMode;updateObjectControls();}
   if(button.dataset.align){poster.align=button.dataset.align;customEdit();pushHistory();updatePreview();}
   if(button.dataset.type && button.dataset.type!==config.type){config.type=button.dataset.type;customEdit();pushHistory();updatePreview();}
   if(button.dataset.close)closeDialog(button.dataset.close);
@@ -151,13 +154,14 @@ document.addEventListener('input',event=>{
   const target=event.target;
   const fields={posterTitle:'title',posterSubtitle:'subtitle',posterLabel:'label',posterFont:'font',posterInk:'textColor',textSize:'size'};
   if(fields[target.id]){poster=sanitizePoster({...poster,[fields[target.id]]:target.value});if(poster.layout==='blank')poster.layout='poster';customEdit();updatePreview();}
+  if(['rotationX','rotationY','objectX','objectY'].includes(target.id)){const value=Number(target.value);changeObject({[target.id]:target.id.startsWith('rotation')?value*Math.PI/180:value/100});updatePreview();}
   if(target.id==='exportSize'){artworkSize=target.value;pushHistory();updatePreview();}
   if(target.hasAttribute('data-color-picker')){const index=Number(target.dataset.colorPicker);config.colors[index]=normalizeHex(target.value);customEdit();const field=document.querySelector(`[data-hex="${index}"]`);field.value=config.colors[index];field.setAttribute('aria-invalid','false');target.previousElementSibling.style.background=config.colors[index];updatePreview();}
   if(target.hasAttribute('data-hex')){const colour=normalizeHex(target.value);target.setAttribute('aria-invalid',String(!colour));if(colour){const index=Number(target.dataset.hex);config.colors[index]=colour;customEdit();const picker=document.querySelector(`[data-color-picker="${index}"]`);picker.value=colour;picker.previousElementSibling.style.background=colour;updatePreview();}}
   if(target.id==='angleRange'){config.angle=Number(target.value);customEdit();updatePreview();}
   if(target.id==='noiseRange'){config.noise=Number(target.value)/100;customEdit();updatePreview();}
 });
-document.addEventListener('change',event=>{if(event.target.matches('[data-color-picker],[data-hex],#angleRange,#noiseRange,#posterTitle,#posterSubtitle,#posterLabel,#posterFont,#posterInk,#textSize')){if(event.target.hasAttribute('data-hex')){const colour=normalizeHex(event.target.value);if(!colour){toast('Use a hex colour such as #0593C6.');return;}event.target.value=colour;}pushHistory();}});
+document.addEventListener('change',event=>{if(event.target.matches('[data-color-picker],[data-hex],#angleRange,#noiseRange,#posterTitle,#posterSubtitle,#posterLabel,#posterFont,#posterInk,#textSize,#rotationX,#rotationY,#objectX,#objectY')){if(event.target.hasAttribute('data-hex')){const colour=normalizeHex(event.target.value);if(!colour){toast('Use a hex colour such as #0593C6.');return;}event.target.value=colour;}pushHistory();}});
 document.addEventListener('focusin',event=>{if(event.target.hasAttribute('data-hex'))hexOrigins.set(event.target,config.colors[Number(event.target.dataset.hex)]);});
 document.addEventListener('focusout',event=>{
   if(!event.target.hasAttribute('data-hex'))return;
@@ -190,13 +194,91 @@ window.addEventListener('pagehide',()=>storage.set('lumi-draft-v2',snapshot()));
 document.addEventListener('keydown',event=>{const editing=event.target.matches('input,textarea,select,[contenteditable=true]');if(editing||document.querySelector('dialog[open]'))return;if(event.code==='Space'&&!event.target.closest('button,a,[role=button]')){event.preventDefault();shuffle();}if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();event.shiftKey?redo():undo();}});
 for(const dialog of document.querySelectorAll('dialog'))dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});
 
+// Object manipulation changes the actual shaded geometry and the exported composition.
+const poseKeys = ['rotationX','rotationY','objectX','objectY'];
+function objectVisible() {return poster.material!=='none' && poster.layout!=='blank';}
+function updateObjectControls() {
+  const enabled=objectVisible();
+  for(const key of poseKeys){const rotation=key.startsWith('rotation');const value=Math.round(poster[key]*(rotation?180/Math.PI:100));$('#'+key).value=value;$('#'+key).disabled=!enabled;$('#'+key+'Output').textContent=value+(rotation?'°':'%');}
+  for(const button of document.querySelectorAll('[data-object-mode]')){button.disabled=!enabled;button.setAttribute('aria-pressed',String(button.dataset.objectMode===objectMode));}
+  $('#resetObject').disabled=!enabled;
+  $('#posterCanvas').classList.toggle('can-manipulate',enabled);
+  $('#posterCanvas').dataset.interaction=objectMode;
+  $('#objectHint').textContent=enabled ? (objectMode==='rotate'?'Drag the sculpture to rotate it.':'Drag the sculpture to place it.') : 'Choose a sculpture to move or rotate it.';
+}
+function changeObject(values) {
+  poster=sanitizePoster({...poster,...values});
+  const [width,height]=artworkSize.split('x').map(Number);
+  const placed=sculpturePlacement(poster,width,height),base=sculpturePlacement({...poster,objectX:0,objectY:0},width,height);
+  if(placed&&base){poster.objectX=(placed.x-base.x)/width;poster.objectY=(placed.y-base.y)/height;}
+  customEdit();updateObjectControls();
+}
+function queueDragPreview() {
+  dragDirty=true;
+  if(dragFrame||dragRenderRunning)return;
+  dragFrame=requestAnimationFrame(async()=>{
+    dragFrame=0;dragRenderRunning=true;dragDirty=false;
+    await refreshArtwork(true);dragRenderRunning=false;
+    if(dragDirty&&objectDrag)queueDragPreview();
+  });
+}
+function artworkPoint(event) {
+  const canvas=$('#posterCanvas'),rect=canvas.getBoundingClientRect();
+  const [width,height]=artworkSize.split('x').map(Number);
+  const scale=Math.min(rect.width/width,rect.height/height);
+  return {x:(event.clientX-rect.left-(rect.width-width*scale)/2)/scale,y:(event.clientY-rect.top-(rect.height-height*scale)/2)/scale,width,height,scale};
+}
+function finishObjectDrag(event,cancelled=false) {
+  if(!objectDrag||event.pointerId!==objectDrag.pointerId)return;
+  const drag=objectDrag;objectDrag=null;dragDirty=false;
+  cancelAnimationFrame(dragFrame);dragFrame=0;
+  if(cancelled){poster=drag.poster;currentName=drag.name;selectedId=drag.id;}
+  const canvas=$('#posterCanvas');canvas.classList.remove('dragging');
+  if(canvas.hasPointerCapture(drag.pointerId))canvas.releasePointerCapture(drag.pointerId);
+  if(drag.moved&&!cancelled)pushHistory();
+  updatePreview();
+}
+const objectCanvas=$('#posterCanvas');
+objectCanvas.addEventListener('pointerdown',event=>{
+  if(event.button!==0||event.isPrimary===false||!objectVisible()||objectDrag)return;
+  const point=artworkPoint(event),placement=sculpturePlacement(poster,point.width,point.height);
+  if(!placement||Math.abs(point.x-placement.x)>placement.size*.48||Math.abs(point.y-placement.y)>placement.size*.48)return;
+  event.preventDefault();pushHistory();clearTimeout(renderTimer);
+  objectDrag={pointerId:event.pointerId,x:event.clientX,y:event.clientY,scale:point.scale,width:point.width,height:point.height,poster:clone(poster),name:currentName,id:selectedId,mode:objectMode,moved:false};
+  objectCanvas.focus({preventScroll:true});objectCanvas.setPointerCapture(event.pointerId);objectCanvas.classList.add('dragging');$('.preview-panel').style.transform='';
+});
+objectCanvas.addEventListener('pointermove',event=>{
+  if(!objectDrag||event.pointerId!==objectDrag.pointerId)return;
+  event.preventDefault();const dx=event.clientX-objectDrag.x,dy=event.clientY-objectDrag.y;
+  if(!objectDrag.moved&&Math.hypot(dx,dy)<3)return;
+  objectDrag.moved=true;
+  if(objectDrag.mode==='rotate')changeObject({rotationX:objectDrag.poster.rotationX+dy*.012,rotationY:objectDrag.poster.rotationY+dx*.012});
+  else changeObject({objectX:objectDrag.poster.objectX+dx/(objectDrag.width*objectDrag.scale),objectY:objectDrag.poster.objectY+dy/(objectDrag.height*objectDrag.scale)});
+  queueDragPreview();
+});
+objectCanvas.addEventListener('pointerup',event=>finishObjectDrag(event));
+objectCanvas.addEventListener('pointercancel',event=>finishObjectDrag(event,true));
+objectCanvas.addEventListener('lostpointercapture',event=>finishObjectDrag(event,true));
+$('#resetObject').addEventListener('click',()=>{if(!objectVisible())return;changeObject({rotationX:0,rotationY:0,objectX:0,objectY:0});pushHistory();updatePreview();});
+objectCanvas.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&objectDrag){finishObjectDrag({pointerId:objectDrag.pointerId},true);event.preventDefault();return;}
+  if(!objectVisible()||event.altKey||event.ctrlKey||event.metaKey)return;
+  const arrows={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
+  if(event.key==='Home'){event.preventDefault();changeObject({rotationX:0,rotationY:0,objectX:0,objectY:0});pushHistory();updatePreview();return;}
+  if(!arrows[event.key])return;
+  event.preventDefault();const [dx,dy]=arrows[event.key];
+  if(event.shiftKey||objectMode==='move')changeObject({objectX:poster.objectX+dx*.02,objectY:poster.objectY+dy*.02});
+  else changeObject({rotationX:poster.rotationX+dy*Math.PI/36,rotationY:poster.rotationY+dx*Math.PI/36});
+  pushHistory();updatePreview();
+});
+
 // Decorative light and a gentle 3D response, without moving the controls themselves.
 let pointerFrame=0,lastSpark=0;
 document.addEventListener('pointermove',event=>{
-  if(!motion||reducedMotion.matches||event.pointerType==='touch')return;
+  if(!motion||reducedMotion.matches||objectDrag||event.pointerType==='touch')return;
   if(!pointerFrame)pointerFrame=requestAnimationFrame(()=>{document.documentElement.style.setProperty('--cursor-x',`${event.clientX}px`);document.documentElement.style.setProperty('--cursor-y',`${event.clientY}px`);pointerFrame=0;});
   if(performance.now()-lastSpark>160 && event.target.closest('.gradient-canvas')){lastSpark=performance.now();const spark=document.createElement('span');spark.className='sparkle';spark.textContent='✧';spark.style.left=`${event.clientX-5}px`;spark.style.top=`${event.clientY-5}px`;document.body.append(spark);spark.addEventListener('animationend',()=>spark.remove(),{once:true});setTimeout(()=>spark.remove(),1200);}
 });
-const panel=$('.preview-panel');panel.addEventListener('pointermove',event=>{if(!motion||reducedMotion.matches||event.pointerType==='touch'||innerWidth<800)return;const r=panel.getBoundingClientRect();const x=(event.clientX-r.left)/r.width-.5;const y=(event.clientY-r.top)/r.height-.5;panel.style.transform=`perspective(1200px) rotateX(${-y*2.5}deg) rotateY(${x*2.5}deg)`;});panel.addEventListener('pointerleave',()=>{panel.style.transform='';});
+const panel=$('.preview-panel');panel.addEventListener('pointermove',event=>{if(objectDrag||event.target.closest('#posterCanvas')){panel.style.transform='';return;}if(!motion||reducedMotion.matches||event.pointerType==='touch'||innerWidth<800)return;const r=panel.getBoundingClientRect();const x=(event.clientX-r.left)/r.width-.5;const y=(event.clientY-r.top)/r.height-.5;panel.style.transform=`perspective(1200px) rotateX(${-y*2.5}deg) rotateY(${x*2.5}deg)`;});panel.addEventListener('pointerleave',()=>{panel.style.transform='';});
 const radialHelp=document.createElement('span');radialHelp.id='radialHelp';radialHelp.className='sr-only';radialHelp.textContent='Direction is not used for radial gradients.';$('#angleSection').append(radialHelp);
 renderPresets();render();
