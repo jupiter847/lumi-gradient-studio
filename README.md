@@ -4,9 +4,9 @@
 
 A glassmorphism playground for creating gradients, trying them in context and exporting a background for your next design.
 
-**[GitHub Pages demo (deployment pending)](https://jupiter847.github.io/lumi-gradient-studio/)** · [View the code](https://github.com/jupiter847/lumi-gradient-studio)
+**[Try the live studio](https://jupiter847.github.io/lumi-gradient-studio/)** · [View the code](https://github.com/jupiter847/lumi-gradient-studio)
 
-The build succeeds, but Pages deployment is currently blocked by a GitHub HTTP 500 error. Run the studio locally with `npm start` while deployment is pending.
+Live demo: https://jupiter847.github.io/lumi-gradient-studio/ — no sign-in required.
 
 ![Lumi gradient studio](preview.jpg)
 
