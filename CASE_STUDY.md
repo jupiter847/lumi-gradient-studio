@@ -1,70 +1,68 @@
 # Lumi — design case study
 
-**Status:** interactive portfolio concept; participant research pending.
+**By Janina Kildisyte · Personal UI/UX project**
 
-**Focus:** help someone turn a short message into a finished poster or social card.
+**Focus:** turn a short message into a finished poster or social card.
 
-## Opportunity hypothesis
+**Stage:** working interactive concept, with participant research planned.
 
-A person making a quote card or a small announcement may want an attractive result without starting from an empty design canvas. A focused tool could bring writing, visual styling and export into one short journey.
+## The idea
 
-This is a hypothesis, not an interview or analytics finding. The assumed audience is people creating occasional visual posts, personal reminders or simple announcements. Their actual needs and preferred workflows still need investigation.
+I wanted to explore a small creative tool with a strong visual identity and a clear purpose. Someone making a quote card, a personal reminder or a simple announcement may want an attractive result without arranging a full design canvas.
 
-## The product purpose
+That is the opportunity I am exploring with Lumi. The intended audience and workflow are initial design assumptions; participant research is still a next step.
+
+## My direction
+
+I chose a sky-blue `#0593C6`, near-white `#FCFFFF` and hot-pink `#D83995` palette, with translucent panels, soft light and expressive material finishes. I wanted the visual style to feel modern and playful, with a simple task at its centre.
+
+The direction developed into a poster studio with editable words and a central sculpture. Glass, chrome and pearl create different moods. Direct rotation and placement make the object part of the composition, while a text-only option keeps the tool useful for quieter designs.
+
+## The experience
 
 **Write a message → style the composition → save or export it.**
 
-The draft combines editable title, supporting text and label with gradient controls, type choices and a central material sculpture. Glass, chrome and pearl finishes offer different moods; hiding the sculpture supports text-focused work. Square, story and wide canvases connect the design to a destination. PNG export includes the words and object; CSS copying provides the background for website use.
+The studio combines an editable title, supporting text and label with gradient controls, type choices and a material sculpture. Square, story and wide canvases connect the composition to a destination. PNG export includes the words, object and selected pose; CSS copying provides the gradient background for website use.
 
-Direct manipulation adds another composition choice: drag in Rotate mode to turn the sculpture, or use Move mode to position it. Rotation updates the rendered 3D surface and its normals, changing the reflections with the viewing angle. Fine-tune sliders and keyboard controls offer precise adjustment. The selected pose is stored with the artwork and used in its still PNG export.
+Dragging in **Rotate** mode changes the rendered 3D surface and reflections. **Move** changes the sculpture's position. Fine-tune sliders and keyboard controls support more precise adjustments. The selected pose stays with saved artwork and its still PNG export.
 
-The visual identity keeps the requested sky blue `#0593C6`, near-white `#FCFFFF` and hot pink `#D83995`. Translucent studio panels and ambient motion make the editing experience expressive. Exported artwork remains static.
+## Design decisions
 
-## Decisions to evaluate
+**Make the task visible.** An editable message gives the starting composition a purpose. I want people to recognise that the words are theirs to replace and that the result is something they can use.
 
-**Start with something meaningful.** A short, editable message makes the task visible. Testing should establish whether people understand that they can replace the words and create their own card.
+**Keep choices close to their result.** The large preview sits beside controls for words, typography, colour and material. The next usability review will look at whether those controls are discoverable and whether their effects are easy to predict.
 
-**Keep cause and effect together.** Text, colour and material controls update a large composition preview. Observe whether people can predict what each control changes and recognise the current selection.
+**Give the sculpture a role.** I wanted the central object to be more than decoration. Its finish, angle and position let someone shape the mood around their message. Hiding it supports a simpler, text-focused card.
 
-**Offer composition choices.** A sculpture-led poster and a text-focused direction give a useful starting structure. Evaluate whether the choices help people finish or restrict the messages they want to create.
+**Keep exploration reversible.** Undo/redo supports trying different directions, while the browser-local collection keeps chosen artwork. Earlier gradient-only saves remain compatible.
 
-**Make materials purposeful.** Glass, chrome and pearl change the mood of the central object. Rotation and placement let the person compose it around their message. Test whether the finishes are distinguishable, whether Rotate and Move are discoverable, and whether keyboard alternatives support the same task.
+**Support readable words.** Typeface, size, alignment and ink controls allow direct control over the message. Long text, small screens and changing backgrounds need particular attention. The automatic text-colour suggestion is a design aid, so the final composition still needs review.
 
-**Support readable words.** Type, size, alignment and ink controls give direct control over the message. Long text, small screens and changing backgrounds need particular attention. A text-colour suggestion cannot certify the full composition.
+**Finish with a useful output.** The PNG brings the words, material and background together. The editing atmosphere remains in the interface; the downloaded artwork is static.
 
-**Preserve and deliver the result.** Undo/redo supports exploration; the browser-local collection preserves chosen artwork. The exported PNG should contain the same text, object and layout shown in the preview. Earlier gradient-only saves remain compatible.
+## Checks so far
 
-These are design rationales to test, not participant findings. Janina should review and refine them so the portfolio reflects decisions she can explain.
+The checks below cover implementation behaviour and basic interaction review. They are separate from participant usability testing, which I plan to do next.
 
-## Implementation validation
-
-The integrated poster workflow has basic implementation checks. These demonstrate implementation behaviour, not usability for the intended audience. Participant research and a full accessibility audit remain pending.
-
-| Check | Actual result | Follow-up |
+| Check | Current result | Remaining work |
 | --- | --- | --- |
-| Gradient and poster utilities | Sixteen Node checks passed | Six gradient checks and ten poster checks passed, including pose bounds, shared placement geometry and movement from the visible bounded home position. |
-| Desktop and mobile layout | Basic review passed | Tested at 1280px desktop and 390px phone width. No horizontal overflow observed; the phone page measured 375px wide within the 390px viewport, and the movement toolbar fitted. |
-| Editable text and composition controls | Basic interactions passed | Edited multiline text, selected Editorial type, tried the Quote composition with the object hidden, and used the background-controls tab. A complete keyboard and accessibility review remains pending. |
-| Material and canvas choices | Basic interactions passed | Switched between Glass, Chrome and Pearl and selected the Story canvas size. |
-| Sculpture manipulation | Desktop drag, keyboard basics and undo passed | Rotation produced a 34° tilt and 62° turn with changed perspective; Move placed the object at +8% horizontally and −2% vertically. Home, arrow and Shift-arrow controls were checked, including undoing a position nudge while retaining its 5° turn. Cancellation was code-reviewed; a live cancellation gesture and actual-device touch dragging remain unverified. |
-| Saved artwork | Save, reload and restore passed | Restored words, font, material and canvas size. A saved 34°/62° rotation and +8%/−2% position survived reset, load and reload. Opening a legacy gradient entry still needs a separate check. |
-| Full-artwork PNG | Complete composition and pose preview checked; file inspection pending | The export preview matched the chosen edge-on pose. Earlier ready feedback reported a 1080 × 1920 PNG. The downloaded file's contents and dimensions were not independently verified; compare the actual file with the preview before claiming full export validation. |
-| Accessibility and participant usability | Pending | Complete a full accessibility audit and formative study, including keyboard operation, readable text and motion preferences. |
+| Gradient and poster utilities | 16 Node checks passed: six gradient checks and ten poster checks, including pose bounds, shared placement geometry and movement from the bounded home position. | Continue checking behaviour as features change. |
+| Desktop and mobile layout | Basic review at 1280px desktop and 390px phone width found no horizontal overflow. The phone page measured 375px wide, and the movement toolbar fitted. | Review across more devices and complete an accessibility audit. |
+| Text and material controls | Multiline text, Editorial type, Quote mode, hiding the object, background controls, Glass/Chrome/Pearl and Story size were checked. | Observe how people discover and use these choices. |
+| Sculpture movement | Desktop dragging changed rotation and perspective; Move changed placement. Home, arrow and Shift-arrow controls were checked, including undoing a position nudge while retaining its angle. | Test touch dragging on an actual device. Cancellation was code-reviewed; a live cancellation gesture remains unchecked. |
+| Saving and recovery | Words, font, material and canvas size survived save, reload and restore. A saved 34°/62° rotation and +8%/−2% position survived reset, load and reload. | Check opening a legacy gradient entry separately. |
+| PNG output | The export preview matched the complete composition and chosen pose. Earlier ready feedback reported a 1080 × 1920 PNG. | Independently inspect the downloaded file's contents and dimensions. |
 
-## Three tasks for a formative study
+## Next steps
 
-1. **Make a post.** “Create a card for a message you would share.” Observe whether the person discovers text editing, composition and material choices without instruction.
-2. **Keep a direction.** “Save this version, try another look, then return to the one you preferred.” Observe the difference between history and the collection.
-3. **Prepare it for a destination.** “Make a square post, then a story version, and download the result.” Observe canvas-size discovery, text fit and whether the file matches expectations.
+I want to observe people completing three short tasks:
 
-Record what happened before writing conclusions:
+1. **Make a post.** Create a card for a message they would share. Look for hesitation around text editing, composition and material choices.
+2. **Keep a direction.** Save one version, try another look, then return to the preferred result. Check whether history and the collection are understood.
+3. **Prepare it for a destination.** Make a square post, then a story version, and download the result. Check canvas-size discovery, text fit and output expectations.
 
-| Task | Observation or participant words | Interpretation to check | Revision and retest |
-| --- | --- | --- | --- |
-| To be completed | — | — | — |
+I will record observations, choose a specific issue to improve and retest the change. No participant sessions or measured usability improvements have been recorded yet.
 
-Use actual observations to identify a specific problem, revise the design and retest. No participant sessions, conversion figures or usability improvements are claimed.
+## Reflection
 
-## Contribution
-
-Prepared for **Janina Kildisyte’s portfolio** with **Codex** assistance in concept development, interface design, copy and implementation. Record future research, design changes and individual contributions as they happen.
+Lumi brings together the areas I wanted this project to explore: a distinctive visual language, a practical creative task and direct interaction with material objects. My next focus is to use feedback and accessibility review to refine that experience.
