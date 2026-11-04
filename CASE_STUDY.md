@@ -37,9 +37,9 @@ These are rationales for the draft, not participant findings. Janina should revi
 | Check | Actual result | Follow-up |
 | --- | --- | --- |
 | Node checks for gradient logic and related data handling | Six checks passed | These verify implementation behavior, not usability. |
-| Desktop/mobile browser review | Pending final verification | Record actual viewports, browser and issues. |
-| Save/reload, history, copy and export | Pending final verification | Inspect visible feedback and actual output files. |
-| Keyboard, motion and accessibility review | Pending final verification | Check focus, labels, motion preferences and final contrast. |
+| Desktop/mobile browser review | Reviewed at 1280px desktop and 390px mobile widths; no horizontal overflow observed | Broader device and browser coverage is still pending. |
+| Save/reload, history, copy and export | Save/reload, history and CSS copy passed; a downloaded PNG header verified 1600 × 1000 dimensions | Additional export combinations and usability evaluation are still pending. |
+| Keyboard, motion and accessibility review | Space-key behavior on buttons checked; reduced-motion support implemented | A full accessibility audit and participant usability study are still pending. |
 
 ## Three tasks for a formative study
 
