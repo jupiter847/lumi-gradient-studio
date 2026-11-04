@@ -2,6 +2,8 @@
 // draw it into a composition rather than changing its size or pixels.
 const sculptureCache = new Map();
 const MATERIALS = new Set(['glass', 'chrome', 'pearl']);
+let renderer = null;
+let webglUnavailable = false;
 
 const vertexSource = `
 attribute vec2 position;
@@ -13,9 +15,12 @@ const fragmentSource = `
 precision highp float;
 varying vec2 uv;
 uniform float material;
+uniform vec2 objectRotation;
 
 mat2 turn(float a) { float c=cos(a),s=sin(a); return mat2(c,-s,s,c); }
 float surface(vec3 p) {
+  p.yz = turn(objectRotation.x)*p.yz;
+  p.xz = turn(objectRotation.y)*p.xz;
   p.xy = turn(-0.38)*p.xy;
   p.yz = turn(0.54)*p.yz;
   p.xz = turn(-0.24)*p.xz;
@@ -94,41 +99,95 @@ function compile(gl, type, source) {
   return shader;
 }
 
-function drawWebGL(canvas, material, size) {
-  const layer = document.createElement('canvas'); layer.width = layer.height = size;
+function releaseRenderer(value) {
+  if (!value) return;
+  const { gl } = value;
+  if (!gl.isContextLost()) {
+    gl.deleteBuffer(value.buffer);
+    gl.deleteProgram(value.program);
+  }
+}
+
+function getRenderer() {
+  if (renderer && !renderer.gl.isContextLost()) return renderer;
+  if (renderer) { releaseRenderer(renderer); renderer = null; sculptureCache.clear(); }
+  if (webglUnavailable) return null;
+  const layer = document.createElement('canvas');
   const gl = layer.getContext('webgl', {
     alpha: true, antialias: true, premultipliedAlpha: false,
     preserveDrawingBuffer: true, depth: false, stencil: false,
   });
-  if (!gl) return false;
+  if (!gl) { webglUnavailable = true; return null; }
+  let vertex, fragment, program, buffer;
   try {
-    const vertex = compile(gl, gl.VERTEX_SHADER, vertexSource);
-    const fragment = compile(gl, gl.FRAGMENT_SHADER, fragmentSource);
-    const program = gl.createProgram();
+    vertex = compile(gl, gl.VERTEX_SHADER, vertexSource);
+    fragment = compile(gl, gl.FRAGMENT_SHADER, fragmentSource);
+    program = gl.createProgram();
     if (!program) throw new Error('Material rendering unavailable');
     gl.attachShader(program, vertex); gl.attachShader(program, fragment); gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error('Material rendering unavailable');
     gl.useProgram(program);
-    const buffer = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    buffer = gl.createBuffer();
+    if (!buffer) throw new Error('Material rendering unavailable');
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]), gl.STATIC_DRAW);
     const position = gl.getAttribLocation(program, 'position');
     gl.enableVertexAttribArray(position); gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-    gl.uniform1f(gl.getUniformLocation(program, 'material'), material === 'chrome' ? 1 : material === 'pearl' ? 2 : 0);
-    gl.viewport(0,0,size,size); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.TRIANGLES,0,6);
-    if (gl.getError() !== gl.NO_ERROR) return false;
-    // Copy before releasing the GPU context: cached and exported pixels persist.
-    canvas.getContext('2d').drawImage(layer,0,0);
-    gl.deleteBuffer(buffer); gl.deleteProgram(program); gl.deleteShader(vertex); gl.deleteShader(fragment);
-    return true;
-  } catch { return false; }
-  finally { gl.getExtension('WEBGL_lose_context')?.loseContext(); }
+    const value = { layer, gl, program, buffer,
+      material: gl.getUniformLocation(program, 'material'),
+      rotation: gl.getUniformLocation(program, 'objectRotation') };
+    layer.addEventListener('webglcontextlost', event => {
+      event.preventDefault();
+      if (renderer === value) { renderer = null; sculptureCache.clear(); }
+    });
+    // Linked programs retain their compiled shader code; geometry and uniforms are reused.
+    gl.deleteShader(vertex); gl.deleteShader(fragment);
+    renderer = value;
+    return value;
+  } catch {
+    if (buffer) gl.deleteBuffer(buffer);
+    if (program) gl.deleteProgram(program);
+    if (vertex) gl.deleteShader(vertex);
+    if (fragment) gl.deleteShader(fragment);
+    webglUnavailable = true;
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+    return null;
+  }
 }
 
-function drawFallback(canvas, material, size) {
+function drawWebGL(canvas, material, size, rotationX, rotationY) {
+  const value = getRenderer();
+  if (!value) return false;
+  const { gl, layer, program } = value;
+  try {
+    if (layer.width !== size || layer.height !== size) layer.width = layer.height = size;
+    gl.useProgram(program);
+    gl.uniform1f(value.material, material === 'chrome' ? 1 : material === 'pearl' ? 2 : 0);
+    gl.uniform2f(value.rotation, rotationX, rotationY);
+    gl.viewport(0,0,size,size); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    if (gl.getError() !== gl.NO_ERROR || gl.isContextLost()) throw new Error('Material rendering unavailable');
+    // The shared GPU surface is copied immediately, so every returned canvas is stable.
+    canvas.getContext('2d').drawImage(layer,0,0);
+    return true;
+  } catch {
+    releaseRenderer(value);
+    if (renderer === value) renderer = null;
+    sculptureCache.clear();
+    return false;
+  }
+}
+
+function drawFallback(canvas, material, size, rotationX, rotationY) {
   const ctx=canvas.getContext('2d'), r=size*0.38, hole=size*0.16;
-  ctx.save(); ctx.translate(size/2,size/2); ctx.rotate(-0.38); ctx.scale(1,0.83);
-  const fill=ctx.createLinearGradient(-r,-r,r,r);
+  ctx.save(); ctx.translate(size/2,size/2);
+  // A lightweight material illustration remains interactive without WebGL.
+  ctx.rotate(-0.38+Math.sin(rotationY)*0.24);
+  const widthScale=Math.max(0.38,Math.abs(Math.cos(rotationY*0.7)));
+  const heightScale=Math.max(0.32,Math.min(1,0.83*Math.abs(Math.cos(0.54+rotationX))/Math.cos(0.54)));
+  ctx.scale(widthScale,heightScale);
+  const shift=Math.sin(rotationX)*r*0.35;
+  const fill=ctx.createLinearGradient(-r,-r+shift,r,r-shift);
   const stops=material==='chrome'
     ? [[0,'#fcffff'],[0.18,'#b8d4e2'],[0.3,'#15364c'],[0.43,'#ecfaff'],[0.5,'#fcffff'],[0.57,'#1d394f'],[0.74,'#7da8c1'],[0.86,'#e3c1d9'],[1,'#fcffff']]
     : material==='pearl'
@@ -144,17 +203,29 @@ function drawFallback(canvas, material, size) {
   ctx.restore();
 }
 
-/** Render glass, chrome or pearl as a transparent square, at 128–1024 pixels. */
-export async function renderSculpture({material='glass',size=512}={}) {
+function boundedAngle(raw) {
+  const value=Number(raw);
+  return Number.isFinite(value)?Math.min(Math.PI,Math.max(-Math.PI,value)):0;
+}
+
+/** Render a stable transparent material image; rotations are offsets in radians.
+ * A shared GPU renderer makes drag frames cheap. Callers can use a smaller size
+ * while dragging, then request the full export resolution when the gesture ends.
+ */
+export async function renderSculpture({material='glass',size=512,rotationX=0,rotationY=0}={}) {
   const finish=MATERIALS.has(material)?material:'glass';
   const resolution=Math.round(Math.min(1024,Math.max(128,Number(size)||512)));
-  const key=`${finish}:${resolution}`;
+  const x=boundedAngle(rotationX), y=boundedAngle(rotationY);
+  const key=`${finish}:${resolution}:${Math.round(x*100)}:${Math.round(y*100)}`;
+  // A lost context must be rebuilt even when the requested view had been cached.
+  if (renderer?.gl.isContextLost()) { releaseRenderer(renderer); renderer=null; sculptureCache.clear(); }
   if (sculptureCache.has(key)) return sculptureCache.get(key);
   const canvas=document.createElement('canvas'); canvas.width=canvas.height=resolution;
-  const rendered=drawWebGL(canvas,finish,resolution);
-  if (!rendered) drawFallback(canvas,finish,resolution);
+  const rendered=drawWebGL(canvas,finish,resolution,x,y);
+  if (!rendered) drawFallback(canvas,finish,resolution,x,y);
   canvas.dataset.material=finish;
   canvas.dataset.renderer=rendered?'webgl':'canvas';
+  canvas.dataset.rotationX=String(x); canvas.dataset.rotationY=String(y);
   sculptureCache.set(key,canvas);
   if(sculptureCache.size>9) sculptureCache.delete(sculptureCache.keys().next().value);
   return canvas;
