@@ -1,0 +1,14 @@
+{
+  "name": "lumi-gradient-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A sky-blue and hot-pink glassmorphism gradient playground.",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test gradient.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
