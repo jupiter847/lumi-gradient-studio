@@ -2,57 +2,66 @@
 
 **Status:** interactive portfolio concept; participant research pending.
 
-**Focus:** a simple creative tool with a glassmorphism interface and a complete create-to-export journey.
+**Focus:** help someone turn a short message into a finished poster or social card.
 
 ## Opportunity hypothesis
 
-A designer choosing a gradient may move between palette inspiration, a visual preview and implementation code. A focused editor could make that small task easier by keeping its choices and their effects together.
+A person making a quote card or a small announcement may want an attractive result without starting from an empty design canvas. A focused tool could bring writing, visual styling and export into one short journey.
 
-This is an initial hypothesis, not a finding from interviews or analytics. The assumed audience is designers and other creatives making backgrounds for interfaces, presentations or visual experiments. Their workflow and export needs still need investigation.
+This is a hypothesis, not an interview or analytics finding. The assumed audience is people creating occasional visual posts, personal reminders or simple announcements. Their actual needs and preferred workflows still need investigation.
 
-## The journey
+## The product purpose
 
-**Choose → adjust → preview → save or export.**
+**Write a message → style the composition → save or export it.**
 
-The concept includes three-colour editing, linear/radial gradients, direction, grain, presets, Canvas/Glass/Type previews, history, a browser-local library and CSS/PNG/SVG output. A motion toggle changes the studio atmosphere; image exports remain static. Accounts and cloud collaboration are outside the scope.
+The draft combines editable title, supporting text and label with gradient controls, type choices and a central material sculpture. Glass, chrome and pearl finishes offer different moods; hiding the sculpture supports text-focused work. Square, story and wide canvases connect the design to a destination. PNG export includes the words and object; CSS copying provides the background for website use.
+
+The visual identity keeps the requested sky blue `#0593C6`, near-white `#FCFFFF` and hot pink `#D83995`. Translucent studio panels and ambient motion make the editing experience expressive. Exported artwork remains static.
 
 ## Decisions to evaluate
 
-**Keep cause and effect together.** Controls sit beside a large live preview. Testing should establish whether people understand how to change the result without instruction.
+**Start with something meaningful.** A short, editable message makes the task visible. Testing should establish whether people understand that they can replace the words and create their own card.
 
-**Offer a starting point.** Presets and shuffle support exploration before precise editing. Their presentation should encourage discovery without suggesting a palette is suitable for every use.
+**Keep cause and effect together.** Text, colour and material controls update a large composition preview. Observe whether people can predict what each control changes and recognise the current selection.
 
-**Show possible contexts.** Canvas, Glass and Type previews demonstrate different compositions. They remain examples, not substitutes for checking a final design.
+**Offer composition choices.** A sculpture-led poster and a text-focused direction give a useful starting structure. Evaluate whether the choices help people finish or restrict the messages they want to create.
 
-**Support recovery.** Undo/redo preserves recent experiments; saving preserves deliberate selections. The difference should be tested for comprehension.
+**Make materials purposeful.** Glass, chrome and pearl change the mood of the central object. Test whether the finishes are distinguishable and whether people find an appropriate use for them.
 
-**Finish with a usable handoff.** CSS copying and static image export connect the experiment to another tool. Output format, dimensions and feedback should match expectations.
+**Support readable words.** Type, size, alignment and ink controls give direct control over the message. Long text, small screens and changing backgrounds need particular attention. A text-colour suggestion cannot certify the full composition.
 
-**Make glass readable.** Translucency, blur and the cyan `#0593C6`, near-white `#FCFFFF` and magenta `#D83995` brand palette establish the style. Labels, text, focus indicators and control states still need evaluation against changing backgrounds. Contrast guidance based on selected colours cannot certify an entire gradient or glass surface.
+**Preserve and deliver the result.** Undo/redo supports exploration; the browser-local collection preserves chosen artwork. The exported PNG should contain the same text, object and layout shown in the preview. Earlier gradient-only saves remain compatible.
 
-These are rationales for the draft, not participant findings. Janina should review and refine them so the final portfolio reflects decisions she can explain.
+These are design rationales to test, not participant findings. Janina should review and refine them so the portfolio reflects decisions she can explain.
 
 ## Implementation validation
 
+The integrated poster workflow has basic implementation checks. These demonstrate implementation behaviour, not usability for the intended audience. Participant research and a full accessibility audit remain pending.
+
 | Check | Actual result | Follow-up |
 | --- | --- | --- |
-| Node checks for gradient logic and related data handling | Six checks passed | These verify implementation behavior, not usability. |
-| Desktop/mobile browser review | Reviewed at 1280px desktop and 390px mobile widths; no horizontal overflow observed | Broader device and browser coverage is still pending. |
-| Save/reload, history, copy and export | Save/reload, history and CSS copy passed; a downloaded PNG header verified 1600 × 1000 dimensions | Additional export combinations and usability evaluation are still pending. |
-| Keyboard, motion and accessibility review | Space-key behavior on buttons checked; reduced-motion support implemented | A full accessibility audit and participant usability study are still pending. |
+| Gradient and poster utilities | Eleven Node checks passed | Six gradient checks and five poster checks passed after integration. |
+| Desktop and mobile layout | Basic review passed | Tested at 1280px desktop and 390px phone width. No horizontal overflow observed; the phone page measured 375px wide within the 390px viewport. |
+| Editable text and composition controls | Basic interactions passed | Edited multiline text, selected Editorial type, tried the Quote composition with the object hidden, and used the background-controls tab. A complete keyboard and accessibility review remains pending. |
+| Material and canvas choices | Basic interactions passed | Switched between Glass, Chrome and Pearl and selected the Story canvas size. |
+| Saved artwork | Save, reload and restore passed | Restored words, font, material and canvas size from a saved artwork. Opening a legacy gradient entry still needs a separate check. |
+| Full-artwork PNG | Preview and ready feedback checked; file inspection pending | The export dialog preview showed the complete composition and reported a 1080 × 1920 PNG ready. The downloaded file's contents and dimensions were not independently verified. Compare the actual file with the preview before claiming full export validation. |
+| Accessibility and participant usability | Pending | Complete a full accessibility audit and formative study, including keyboard operation, readable text and motion preferences. |
 
 ## Three tasks for a formative study
 
-1. **Create:** “Make a background you would use in a project.” Observe preset discovery, controls and hesitation.
-2. **Recover:** “Keep this version, try another direction, then return to the one you liked.” Observe understanding of save, history and the library.
-3. **Export:** “Prepare a background for a desktop presentation, then obtain its CSS for a website.” Observe format, size and feedback expectations.
+1. **Make a post.** “Create a card for a message you would share.” Observe whether the person discovers text editing, composition and material choices without instruction.
+2. **Keep a direction.** “Save this version, try another look, then return to the one you preferred.” Observe the difference between history and the collection.
+3. **Prepare it for a destination.** “Make a square post, then a story version, and download the result.” Observe canvas-size discovery, text fit and whether the file matches expectations.
+
+Record what happened before writing conclusions:
 
 | Task | Observation or participant words | Interpretation to check | Revision and retest |
 | --- | --- | --- | --- |
 | To be completed | — | — | — |
 
-Use actual observations to choose a specific problem, revise it and retest. No participant sessions, conversion figures or usability improvements are claimed in this draft.
+Use actual observations to identify a specific problem, revise the design and retest. No participant sessions, conversion figures or usability improvements are claimed.
 
 ## Contribution
 
-Prepared for **Janina Kildisyte’s portfolio**. Initial concept development, interface design, copy and implementation were assisted by **Codex**. Future research, design changes and individual contributions should be recorded as they happen.
+Prepared for **Janina Kildisyte’s portfolio** with **Codex** assistance in concept development, interface design, copy and implementation. Record future research, design changes and individual contributions as they happen.
