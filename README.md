@@ -1,35 +1,29 @@
-# Lumi — gradient studio
+# Lumi — poster studio
 
-**A little colour. Endless possibilities.**
+**Your words. A little atmosphere.**
 
-A glassmorphism playground for creating gradients, trying them in context and exporting a background for your next design.
+Make a quote card, a simple announcement or a social post. Add your own words, choose a gradient and give the composition a glass, chrome or pearl sculpture. Export the finished artwork as a PNG, ready to share.
 
 **[Try the live studio](https://jupiter847.github.io/lumi-gradient-studio/)** · [View the code](https://github.com/jupiter847/lumi-gradient-studio)
 
-Live demo: https://jupiter847.github.io/lumi-gradient-studio/ — no sign-in required.
-
-![Lumi gradient studio](preview.jpg)
+[Open the live editor](https://jupiter847.github.io/lumi-gradient-studio/) to try the complete poster workflow.
 
 [Read the design case study](CASE_STUDY.md)
 
-## Try it
+## Make something with it
 
-1. Start with a curated preset or shuffle a new combination.
-2. Adjust three colours, direction, linear/radial style and grain.
-3. Explore the Canvas, Glass and Type previews.
-4. Save a favourite, copy CSS or export a PNG/SVG in your chosen aspect ratio.
+1. Start with a palette, then adjust its colours, direction and grain.
+2. Write a title, supporting text and a small label. Choose a font, alignment, type size and text colour.
+3. Try a central sculpture in glass, chrome or pearl, or hide it for a quieter composition.
+4. Choose a square, story or wide canvas, save the artwork in your collection, then download the complete PNG.
 
-Undo/redo makes experimentation reversible. The motion toggle controls the animated studio atmosphere; reduced-motion preferences are respected. Exports are **static gradient backgrounds**, not animations or screenshots of the interface.
+Undo/redo supports experimentation. The background CSS can also be copied for use in a website; it contains the gradient, while PNG export includes your text and sculpture.
 
-## Design direction
+## Why this project
 
-Lumi uses translucent panels, soft ambient colour and a restrained brand palette:
+Lumi is a UI/UX portfolio concept built around a concrete task: turn a short message into a finished visual without arranging a full design canvas. The interface retains its translucent panels, ambient colour and sky-blue `#0593C6`, near-white `#FCFFFF` and hot-pink `#D83995` palette.
 
-- Cyan `#0593C6`
-- Near-white `#FCFFFF`
-- Magenta `#D83995`
-
-The [case study](CASE_STUDY.md) separates design hypotheses, implementation checks and research still to be done.
+The [case study](CASE_STUDY.md) explains the design hypotheses, scope, tradeoffs and a formative-testing plan. Participant research and measured usability outcomes are still pending.
 
 ## Run locally
 
@@ -39,22 +33,26 @@ Requires Node.js 20 or later. No dependency installation is needed.
 npm start
 ```
 
-Open [localhost:4174](http://localhost:4174). Run checks with `npm test`.
+Open [localhost:4174](http://localhost:4174). Run checks with:
 
-## GitHub Pages
+```sh
+npm test
+```
 
-This repository keeps its website files at the root. In **Settings → Pages**, select **Deploy from a branch**, then **main** and **/(root)**. After deployment succeeds, use the published URL in the repository’s **About → Website** field and pin the repository on your profile.
+The application uses HTML, CSS and JavaScript. Website files and checks are at the repository root; `server.mjs` serves the local preview.
 
-## Data and scope
+## Publish on GitHub Pages
 
-Saved gradients stay in the current browser through `localStorage`; they do not sync between devices. Clearing browser data removes them. The tool has no accounts, backend, analytics or paid API dependency. Google Fonts supplies the typefaces, with system-font fallbacks.
+The website files are at the repository root. In **Settings → Pages**, choose **Deploy from a branch**, then select **main** and **/(root)**.
 
-Contrast guidance is a design aid based on selected colours. It does not guarantee readable text at every point of a gradient or translucent surface; evaluate the final composition in its intended context.
+## Data and output
+
+- Saved artwork stays in this browser through `localStorage`; there is no cloud sync. Clearing browser data removes the collection. Earlier gradient-only saves remain compatible.
+- PNGs contain the composed artwork, including text and the selected material object. Decorative interface motion, pointer light and sparkle trails are outside the exported image.
+- Material finishes are stylised illustrations. The artwork is a still image.
+- The tool has no account system, backend, analytics or paid API dependency. Google Fonts supplies typefaces with system-font fallbacks.
+- Review text readability in the final composition, especially after changing its background or text colour. Automated colour guidance is not a full accessibility audit.
 
 ## Contribution
 
-Prepared for **Janina Kildisyte’s UI/UX portfolio**. The initial concept, interface design, copy and implementation were assisted by **Codex**. Future research, design refinements and individual contributions should be documented as they are completed.
-
-## Motion and colour
-
-The interface uses sky blue `#0593C6`, icy white `#FCFFFF` and hot pink `#D83995`. Animated ambient colour, a liquid glass sculpture, pointer light, a gentle preview tilt and sparkle trails are decorative. The motion control pauses the effects, and reduced-motion preferences disable them. Image and CSS exports use the static base gradient.
+Prepared for **Janina Kildisyte’s UI/UX portfolio** with **Codex** assistance in concept development, interface design, copy and implementation. Future research, design refinements and individual contributions should be documented as they happen.
