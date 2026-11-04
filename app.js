@@ -1,5 +1,5 @@
 import { PRESETS, normalizeHex, sanitizeConfig, gradientCSS } from './gradient.js';
-import { sanitizePoster, renderPoster, sculpturePlacement } from './poster.js';
+import { sanitizePoster, renderPoster, sculpturePlacement } from './poster.js?v=3';
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const clone = value => JSON.parse(JSON.stringify(value));
