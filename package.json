@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "A sky-blue and hot-pink glassmorphism gradient playground.",
+  "description": "A glassmorphism gradient playground with live editing and image/CSS export.",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test gradient.test.mjs"
+    "test": "node --test *.test.mjs"
   },
   "engines": {
     "node": ">=20"
