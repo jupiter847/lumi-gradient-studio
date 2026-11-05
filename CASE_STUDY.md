@@ -1,6 +1,6 @@
 # Lumi — design case study
 
-**By Janina Kildisyte · Personal UI/UX project**
+**By Janina · Personal UI/UX project**
 
 **Focus:** turn a short message into a finished poster or social card.
 

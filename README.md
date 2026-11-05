@@ -1,6 +1,6 @@
 # Lumi — poster studio
 
-**A personal UI/UX project by Janina Kildisyte.**
+**A personal UI/UX project by Janina.**
 
 **Your words. A little atmosphere.**
 
