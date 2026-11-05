@@ -4,13 +4,11 @@
 
 **Your words. A little atmosphere.**
 
-Lumi is my exploration of expressive, lightweight design tools. I wanted a short message to become a finished visual through a few clear choices: words, colour, typography and a sculptural object.
+Lumi is my responsive UI/UX prototype for a poster studio that runs in the browser. I designed it for people turning a short message into a quote card, announcement or social post.
 
-Make a quote card, a simple announcement or a social post. Add your own words, choose a gradient and try a glass, chrome or pearl finish. Export the composition as a PNG, ready to share.
+The core flow is **write → style → arrange → export**. Text, colours and a glass, chrome or pearl sculpture can be adjusted in a live preview, then saved locally or exported as a complete PNG.
 
 **[Try the live studio](https://jupiter847.github.io/lumi-gradient-studio/)** · [View the code](https://github.com/jupiter847/lumi-gradient-studio)
-
-[Open the live studio](https://jupiter847.github.io/lumi-gradient-studio/) to try the complete poster workflow.
 
 [Read my design case study](CASE_STUDY.md)
 
@@ -29,7 +27,7 @@ For precise adjustments, open **Fine-tune angle & position**. With the preview f
 
 I chose sky blue `#0593C6`, near-white `#FCFFFF` and hot pink `#D83995` for a bright, expressive identity. Translucent panels, soft light and material finishes give the studio its character. Editable text and a clear export flow give that visual exploration a practical purpose.
 
-I wanted the experience to feel playful while keeping the main task easy to understand: write, style, save or export. The [case study](CASE_STUDY.md) explains the decisions, current checks and next steps.
+I kept the preview central and separated **Rotate** from **Move** so each drag has a clear purpose. Finer angle and position controls are available when needed, while the main flow stays focused on creating and exporting the artwork. The [case study](CASE_STUDY.md) explains the decisions, current checks and next steps.
 
 ## Run locally
 
